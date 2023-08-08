@@ -1,0 +1,42 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model County {
+  id          String    @id @default(uuid())
+  updatedAt   DateTime
+  name        String
+  addressFile Bytes?
+  ownerFile   Bytes?
+  addresses   Address[]
+  Owner       Owner[]
+}
+
+model Address {
+  id         String @id @default(uuid())
+  street     String
+  city       String
+  postalCode String
+  county     County @relation(fields: [countyId], references: [id])
+  countyId   String
+}
+
+model Owner {
+  id         String  @id @default(uuid())
+  name       String
+  street     String
+  mailing    String?
+  addresscsz String?
+  postalCode String?
+  type       String?
+  county     County  @relation(fields: [countyId], references: [id])
+  countyId   String
+}

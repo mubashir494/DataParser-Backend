@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
 datasource db {
@@ -27,6 +28,7 @@ model Address {
   postalCode String
   county     County @relation(fields: [countyId], references: [id])
   countyId   String
+  @@fulltext([street])
 }
 
 model Owner {
@@ -39,4 +41,5 @@ model Owner {
   type       String?
   county     County  @relation(fields: [countyId], references: [id])
   countyId   String
+  @@fulltext([street])
 }

@@ -9,6 +9,8 @@ import {
   getAddressFields,
   getOwnerFields,
   getCounties,
+  search,
+  getOwnerById
 } from "../controller/data.js";
 import { Router } from "express";
 import uploadFile from "../middleware/fileHandler.js";
@@ -46,7 +48,13 @@ router.post("/fields/address", getAddressFields);
 // Get Owner file Fields
 router.post("/fields/owner", getOwnerFields);
 
+// Get Owner By Id
+router.post("/getOwnerById",getOwnerById)
+
 // Get All the Counties
 router.get("/", getCounties);
+
+// General Search
+router.post("/search",search)
 
 export default router;

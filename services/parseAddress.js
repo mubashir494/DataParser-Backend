@@ -65,7 +65,7 @@ export const getOwners = (dataTable, ownerFields) => {
     obj.street = element[ownerFields.street];
     obj.name = element[ownerFields.name];
     if (ownerFields.mailing) {
-      obj.mailing = element[ownerFields.name];
+      obj.mailing = element[ownerFields.mailing];
     }
     if (ownerFields.addresscsz) {
       obj.addresscsz = element[ownerFields.addresscsz];
@@ -76,7 +76,6 @@ export const getOwners = (dataTable, ownerFields) => {
     if (ownerFields.type) {
       obj.type = element[ownerFields.type];
     }
-    console.log(obj);
     owners.push(obj);
   });
   return owners;

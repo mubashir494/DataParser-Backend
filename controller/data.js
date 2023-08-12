@@ -333,31 +333,49 @@ export const search = async (req, res) => {
   }
 };
 
+export const searchZip = () => {
+  if(req.body.query){
+    const query = req.body.query.trim().toUpperCase();
+    if(query.length >= 2){
+      const owner = prisma.owner.findMany({where : {
+        
+      }})
+
+    }
+    else{
+      res.status(400).json({"message" : "Invalid Body"})
+    }
+  }
+  else{
+    res.status(400).json({"message" : "Invalid Body"})
+    
+  }
+};
+
+// Get owner and address associated by Id
 export const getOwnerById = async (req, res) => {
   if (req.body.ownerId) {
     try {
       const owner = await prisma.owner.findFirst({
         where: { id: req.body.ownerId },
       });
-      if(owner) {
-        if(req.body.addressId) {
+      if (owner) {
+        if (req.body.addressId) {
           const address = await prisma.address.findFirst({
-            where: { id : req.body.addressId },
+            where: { id: req.body.addressId },
           });
           if (address) {
             owner.address = address;
           }
         }
         res.status(200).json(owner);
-      }
-      else{
-        res.status(401).json({message : "Not found"})
+      } else {
+        res.status(401).json({ message: "Not found" });
       }
     } catch (e) {
       res.status(400).json({ message: e.message });
     }
-  }
-  else{
-    res.status(401).json({"message" : "Invalid Body"})
+  } else {
+    res.status(401).json({ message: "Invalid Body" });
   }
 };

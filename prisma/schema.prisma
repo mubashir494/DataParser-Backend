@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
@@ -28,9 +28,10 @@ model Address {
   postalCode String
   county     County @relation(fields: [countyId], references: [id])
   countyId   String
-  @@fulltext([street])
-}
 
+  @@fulltext([street])
+  @@fulltext([postalCode])
+}
 model Owner {
   id         String  @id @default(uuid())
   name       String
@@ -42,4 +43,6 @@ model Owner {
   county     County  @relation(fields: [countyId], references: [id])
   countyId   String
   @@fulltext([street])
+  @@fulltext([addresscsz])
+  @@fulltext([postalCode])
 }

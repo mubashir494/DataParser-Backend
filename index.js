@@ -16,8 +16,6 @@ app.use(cors());
 
 app.use('/data',data)
 
-const prisma = new PrismaClient();
-
 
 app.listen(PORT,() =>{
     console.log("Listening on PORT "+PORT)

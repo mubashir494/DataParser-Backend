@@ -10,7 +10,9 @@ import {
   getOwnerFields,
   getCounties,
   search,
-  getOwnerById
+  getOwnerById,
+  searchZip,
+  deleteCounty
 } from "../controller/data.js";
 import { Router } from "express";
 import uploadFile from "../middleware/fileHandler.js";
@@ -42,6 +44,9 @@ router.post("/delete/address", deleteAddresses);
 // Delete owner file and data
 router.post("/delete/ownership", deleteOwnership);
 
+// Delete County
+router.post("/delete",deleteCounty)
+
 // Get Address file fields
 router.post("/fields/address", getAddressFields);
 
@@ -56,5 +61,9 @@ router.get("/", getCounties);
 
 // General Search
 router.post("/search",search)
+
+// Zip code search
+router.post("/search/zipcode",searchZip)
+
 
 export default router;

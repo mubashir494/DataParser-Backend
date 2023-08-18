@@ -30,7 +30,6 @@ model Address {
   countyId   String
 
   @@fulltext([street])
-  @@fulltext([postalCode])
 }
 model Owner {
   id         String  @id @default(uuid())

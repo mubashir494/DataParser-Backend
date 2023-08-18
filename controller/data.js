@@ -7,6 +7,7 @@ import {
   getFields,
   getOwners,
 } from "../services/parseAddress.js";
+import { searchCustomer } from "../services/remoteServer.js";
 
 const prisma = new PrismaClient();
 
@@ -295,6 +296,9 @@ export const getCounties = async (req, res) => {
 
 // General Search
 export const search = async (req, res) => {
+  const page = req.query.page;
+  const pageSize = req.query.size;
+
   if (req.body.query) {
     const query = req.body.query.trim().toUpperCase();
     if (query.length <= 2) {
@@ -321,11 +325,20 @@ export const search = async (req, res) => {
         promise[0].forEach((own) => {
           promise[1].forEach((add) => {
             if (own.street == add.street) {
-              own.address = add;
+              own.addressId = add.id;
             }
           });
         });
-        res.status(200).json({ result: promise[0] });
+        if (page && pageSize) {
+          const startIndex = (page - 1) * pageSize;
+          const endIndex = page * pageSize;
+          const paginatedResult = promise[0].slice(startIndex, endIndex);
+          const totalPages = Math.ceil(promise[0].length / pageSize);
+          console.log({ result: paginatedResult, totalPages });
+          res.status(200).json({ result: paginatedResult, totalPages });
+        } else {
+          res.status(200).json({ result: promise[0] });
+        }
       } catch (e) {
         res.status(400).json(e.message);
       }
@@ -333,22 +346,32 @@ export const search = async (req, res) => {
   }
 };
 
-export const searchZip = () => {
-  if(req.body.query){
-    const query = req.body.query.trim().toUpperCase();
-    if(query.length >= 2){
-      const owner = prisma.owner.findMany({where : {
-        
-      }})
+export const searchZip = async (req, res) => {
+  if (req.body.query) {
+    const page = req.query.page;
+    const pageSize = req.query.size;
+    const query = `%${req.body.query}%`;
+    if (query.length >= 4) {
+      const re =
+        await prisma.$queryRaw`SELECT dataparser.owner.id as id,dataparser.owner.name as name,dataparser.owner.street as street,dataparser.owner.mailing as mailing,dataparser.owner.postalCode as postalCode,dataparser.owner.type as type,dataparser.owner.addresscsz as addresscsz,dataparser.address.id as addressId FROM dataparser.owner AS owner
+      JOIN dataparser.address AS address ON owner.street = address.street
+      WHERE (owner.street != '' AND address.street != '')
+      AND (owner.postalCode LIKE ${query} OR owner.addresscsz LIKE ${query});`;
 
+      if (page && pageSize) {
+        const startIndex = (page - 1) * pageSize;
+        const endIndex = page * pageSize;
+        const paginatedResult = re.slice(startIndex, endIndex);
+        const totalPages = Math.ceil(re.length / pageSize);
+        res.status(200).json({ result: paginatedResult, totalPages });
+      } else {
+        res.status(200).json({ result: re });
+      }
+    } else {
+      res.status(400).json({ message: "Invalid Body" });
     }
-    else{
-      res.status(400).json({"message" : "Invalid Body"})
-    }
-  }
-  else{
-    res.status(400).json({"message" : "Invalid Body"})
-    
+  } else {
+    res.status(400).json({ message: "Invalid Body" });
   }
 };
 
@@ -359,15 +382,32 @@ export const getOwnerById = async (req, res) => {
       const owner = await prisma.owner.findFirst({
         where: { id: req.body.ownerId },
       });
+      let customer;
+      let address;
+      if (req.app.locals.db) {
+        customer = searchCustomer(req.app.locals.db, owner.street);
+      }
       if (owner) {
         if (req.body.addressId) {
-          const address = await prisma.address.findFirst({
+          address = prisma.address.findFirst({
             where: { id: req.body.addressId },
           });
-          if (address) {
-            owner.address = address;
+        }
+        if (req.app.locals.db) {
+          const promise = await Promise.all([customer, address]);
+          if (promise[0]) {
+            owner.customer = promise[0];
+          }
+          if (promise[1]) {
+            owner.address = promise[1];
+          }
+        } else {
+          const promise = await Promise.all([address]);
+          if (promise[0]) {
+            owner.address = promise[0];
           }
         }
+
         res.status(200).json(owner);
       } else {
         res.status(401).json({ message: "Not found" });
@@ -377,5 +417,25 @@ export const getOwnerById = async (req, res) => {
     }
   } else {
     res.status(401).json({ message: "Invalid Body" });
+  }
+};
+
+// Delete County
+export const deleteCounty = async (req, res) => {
+  try {
+    if (req.body.id) {
+      const address = await prisma.address.deleteMany({
+        where: { countyId: req.body.id },
+      });
+      const owner = await prisma.owner.deleteMany({
+        where: { countyId: req.body.id },
+      });
+      const county = await prisma.county.delete({ where: { id: req.body.id } });
+      res.status(200).json({ message: "Success" });
+    } else {
+      res.status(401).json({ message: "Invalid Body" });
+    }
+  } catch (e) {
+    res.status(401).json({ message: e.message });
   }
 };

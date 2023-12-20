@@ -1,4 +1,11 @@
 import { Dbf } from "dbf-reader";
+import csv from "csv-parser";
+import fs from 'fs';
+import {DBFFile} from 'dbffile'
+import dbf from  "dbf";
+import { doesNotReject } from "assert";
+import { resolve } from "path";
+
 export const checkAddressFields = (dataTable, addressFields) => {
   const arr = Object.keys(addressFields).map((key) => addressFields[key]);
   const setArr = new Set(arr);
@@ -9,6 +16,7 @@ export const checkAddressFields = (dataTable, addressFields) => {
       dataTable.columns.forEach((el) => {
         if (el.name == element) {
           found2 = true;
+          
         }
       });
       if (found2 == false) {
@@ -49,9 +57,9 @@ export const getAddresses = (dataTable, addressFields) => {
   let addresses = [];
   dataTable.rows.forEach((element) => {
     let obj = {};
-    obj.street = element[addressFields.street];
-    obj.city = element[addressFields.city];
-    obj.postalCode = element[addressFields.postalCode];
+    obj.street = String(element[addressFields.street]);
+    obj.city = String(element[addressFields.city]);
+    obj.postalCode = String(element[addressFields.postalCode]);
     // Add optional fields here
     addresses.push(obj);
   });
@@ -65,16 +73,16 @@ export const getOwners = (dataTable, ownerFields) => {
     obj.street = element[ownerFields.street];
     obj.name = element[ownerFields.name];
     if (ownerFields.mailing) {
-      obj.mailing = element[ownerFields.mailing];
+      obj.mailing = String(element[ownerFields.mailing]);
     }
     if (ownerFields.addresscsz) {
-      obj.addresscsz = element[ownerFields.addresscsz];
+      obj.addresscsz = String(element[ownerFields.addresscsz]);
     }
     if (ownerFields.postalCode) {
-      obj.postalCode = element[ownerFields.postalCode];
+      obj.postalCode = String(element[ownerFields.postalCode]);
     }
     if (ownerFields.type) {
-      obj.type = element[ownerFields.type];
+      obj.type = String(element[ownerFields.type]);
     }
     owners.push(obj);
   });
@@ -90,3 +98,4 @@ export const getFields = (buffer) =>{
   })
   return arr;
 }
+
